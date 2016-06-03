@@ -67,7 +67,7 @@ function love.load()
 
 
 
-		hero.walk[x] = love.graphics.newImage("hero/Hero_Walk_0" .. x .. ".png")
+		hero.walk[x] = love.graphics.newImage("heroi/Hero_Walk_0" .. x .. ".png")
 
 	end
 
@@ -694,17 +694,17 @@ function enemyCall() --faz inimigos surgir na tela de tipos aleatorios e margens
 
       if v.tipo == "gomba" then 
 
-        v.img[1] = love.graphics.newImage("enemies/gomba1.png") 
+        v.img[1] = love.graphics.newImage("inimigos/gomba1.png") 
 
-        v.img[2] = love.graphics.newImage("enemies/gomba2.png")
+        v.img[2] = love.graphics.newImage("inimigos/gomba2.png")
 
       
 
       elseif v.tipo == "kopa" then  
 
-        v.img[1] = love.graphics.newImage("enemies/kopa1.png") 
+        v.img[1] = love.graphics.newImage("inimigos/kopa1.png") 
 
-        v.img[2] = love.graphics.newImage("enemies/kopa2.png")
+        v.img[2] = love.graphics.newImage("inimigos/kopa2.png")
 
       
 
@@ -724,7 +724,7 @@ shots = {}  -- table with all shurikens
 
 function shoot(x, y , dirx, diry) -- makes shuriken appear on the screen from pont where hero faces
 
-  table.insert ( shots, {img = love.graphics.newImage("hero/shot.png"), pos_x = x, pos_y = y , 
+  table.insert ( shots, {img = love.graphics.newImage("heroi/shot.png"), pos_x = x, pos_y = y , 
 
       dir_x = dirx,   dir_y=diry,collision = false}) 
 
@@ -768,7 +768,7 @@ function love.draw()
 
 				elseif (mapa[i][j] == "D") then
 
-					love.graphics.draw(love.graphics.newImage("hero/tree.png"),(j * tileSize) - tileSize, (i * tileSize) - tileSize)
+					love.graphics.draw(love.graphics.newImage("heroi/tree.png"),(j * tileSize) - tileSize, (i * tileSize) - tileSize)
 
 				elseif (mapa[i][j] == "C") then
 
