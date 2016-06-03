@@ -477,7 +477,6 @@ function enemy.spawn() --insert elements on enemy table
 		if v.tipo == 1 then         -- DETERMINAR INIMIGO TIPO 1 
 			v.img[1] = love.graphics.newImage("enemies/onion1.png") 
 			v.img[2] = love.graphics.newImage("enemies/onion2.png")
-
 		elseif v.tipo == 2  then  
 			v.img[1] = love.graphics.newImage("enemies/kopa1.png") 
 			v.img[2] = love.graphics.newImage("enemies/kopa2.png")
