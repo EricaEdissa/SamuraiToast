@@ -38,6 +38,11 @@ function love.graphics.newFont(nomeDoArquivo, sizeOfChar)
 	return oldNewFont(aplicaCaminhoAlternativo(nomeDoArquivo, fontes), sizeOfChar)
 end
 
+local oldSetNewFont = love.graphics.setNewFont
+function love.graphics.setNewFont(nomeDoArquivo, sizeOfChar)
+	return oldSetNewFont(aplicaCaminhoAlternativo(nomeDoArquivo, fontes), sizeOfChar)
+end
+
 local oldNewSource = love.audio.newSource
 function love.audio.newSource(nomeDoArquivo, mode)
 	return oldNewSource(aplicaCaminhoAlternativo(nomeDoArquivo, sons), mode)
