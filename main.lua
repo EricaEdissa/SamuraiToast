@@ -546,7 +546,10 @@ function love.draw()
 
 				local dir_y= 0  -- control shuriken aiming through hero frame
 				local dir_x= 1 
-				while (love.keyboard.isDown("space")) and hero.shot <=0 do
+
+				while (love.keyboard.isDown("space") or love.keyboard.isDown(" "))
+					and hero.shot <=0 do
+
 					if hero.anim_frame>=9 and hero.anim_frame <= 12 then -- Up 
 						dir_y = -1 
 						dir_x = 0 
