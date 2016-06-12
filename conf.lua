@@ -34,8 +34,8 @@ function love.graphics.newImage(nomeDoArquivo)
 end
 
 local oldNewFont = love.graphics.newFont
-function love.graphics.newFont(nomeDoArquivo)
-	return oldNewFont(aplicaCaminhoAlternativo(nomeDoArquivo, fontes))
+function love.graphics.newFont(nomeDoArquivo, sizeOfChar)
+	return oldNewFont(aplicaCaminhoAlternativo(nomeDoArquivo, fontes), sizeOfChar)
 end
 
 local oldNewSource = love.audio.newSource

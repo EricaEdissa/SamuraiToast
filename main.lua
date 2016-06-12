@@ -82,7 +82,7 @@ function love.load()
 	LoadTiles("mapa/sheet.png",13,8)
 
 	for x = 1, 12, 1 do -- carrega instancia "walk" da tabela "hero" com imagens da caminhada do heroi
-		hero.walk[x] = love.graphics.newImage("hero/hero0" .. x .. ".png")
+		hero.walk[x] = love.graphics.newImage("heroi/hero0" .. x .. ".png")
 	end
 
 -- Butoes
@@ -338,11 +338,11 @@ function power()
 	tipo = love.math.random(1,3) -- 3 tipos de power ups 
 
 	if tipo ==1 then 
-		img = love.graphics.newImage("hero/star.png") -- imune a dano 
+		img = love.graphics.newImage("heroi/star.png") -- imune a dano 
 	elseif tipo== 2 then 
-		img = love.graphics.newImage("hero/life.png") -- aumenta vida 
+		img = love.graphics.newImage("heroi/life.png") -- aumenta vida 
 	else 
-		img = love.graphics.newImage("hero/chicken.png") -- aumenta velocidade 
+		img = love.graphics.newImage("heroi/chicken.png") -- aumenta velocidade 
 	end 
 	table.insert(powers , {img = img , tipo = tipo , pos_x = love.math.random(0,1000) , pos_y= love.math.random(0,1000), time=0} )
 end 
@@ -475,11 +475,11 @@ function enemy.spawn() --insert elements on enemy table
 
 	for i, v in ipairs(enemy) do --carrega imagens de acordo com o tipo de inimigo 
 		if v.tipo == 1 then         -- DETERMINAR INIMIGO TIPO 1 
-			v.img[1] = love.graphics.newImage("enemies/onion1.png") 
-			v.img[2] = love.graphics.newImage("enemies/onion2.png")
+			v.img[1] = love.graphics.newImage("inimigos/onion1.png") 
+			v.img[2] = love.graphics.newImage("inimigos/onion2.png")
 		elseif v.tipo == 2  then  
-			v.img[1] = love.graphics.newImage("enemies/kopa1.png") 
-			v.img[2] = love.graphics.newImage("enemies/kopa2.png")
+			v.img[1] = love.graphics.newImage("inimigos/kopa1.png") 
+			v.img[2] = love.graphics.newImage("inimigos/kopa2.png")
 		end 
 	end 
 end
@@ -504,7 +504,7 @@ end
 shots = {}  -- table with all shurikens 
 
 function shoot(x, y , dirx, diry) -- makes shuriken appear on the screen from pont where hero faces
-	table.insert ( shots, {img = love.graphics.newImage("hero/shot.png"), pos_x = x, pos_y = y , 
+	table.insert ( shots, {img = love.graphics.newImage("heroi/shot.png"), pos_x = x, pos_y = y , 
 			dir_x = dirx,   dir_y=diry,collision = false, vel = 230}) 
 	love.audio.play(shuriken[love.math.random(1,2)])
 end 
@@ -525,7 +525,7 @@ function love.draw()
 						if (mapa[i][j] == "G") then 
 							love.graphics.draw(tilesetImage, tileQuads[60], (j * tileSize) - tileSize, (i * tileSize) - tileSize)
 						elseif (mapa[i][j] == "D") then
-							love.graphics.draw(love.graphics.newImage("hero/tree.png"),(j * tileSize) - tileSize, (i * tileSize) - tileSize)
+							love.graphics.draw(love.graphics.newImage("heroi/tree.png"),(j * tileSize) - tileSize, (i * tileSize) - tileSize)
 						elseif (mapa[i][j] == "C") then
 							love.graphics.draw(tilesetImage, tileQuads[7], (j * tileSize) - tileSize, (i * tileSize) - tileSize)
 						elseif (mapa[i][j] == "P") then
@@ -541,7 +541,7 @@ function love.draw()
 					hero.pos_y, 0, 0.85,0.85, hero.walk[hero.anim_frame]:getWidth()/2, hero.walk[hero.anim_frame]:getHeight()/2 )
 
 				for i,v in ipairs(enemy) do
-					love.graphics.draw( v.img[v.frame] , v.pos_x, v.pos_y)   -- draws enemies onscreen 
+					love.graphics.draw( v.img[v.frame] , v.pos_x, v.pos_y)   -- draws inimigos onscreen 
 				end
 
 				local dir_y= 0  -- control shuriken aiming through hero frame
