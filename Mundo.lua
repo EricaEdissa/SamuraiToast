@@ -40,3 +40,16 @@ function Mundo:desloca(quantidadeX, quantidadeY)
 		end
 	end
 end
+
+function Mundo:detectaColisao(coisa)
+	local colisoes = {}
+	local numeroDeColisoes = 0;
+	for _,outraCoisa in pairs(self.coisas) do
+		if coisa ~= outraCoisa and coisa:colidiu(outraCoisa) then
+			colisoes[numeroDeColisoes] = outraCoisa
+			numeroDeColisoes = numeroDeColisoes + 1
+		end
+	end
+
+	return colisoes
+end

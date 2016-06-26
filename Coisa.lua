@@ -78,6 +78,11 @@ end
 -- retorna true se a caixaA colidiu com a caixaB e false caso não.
 -]]
 function Coisa:colidiu(outraCoisa)
+	-- se o objeto nao tem dimensoes ele nao tem corpo
+	if self.largura == 0 or self.altura == 0 then
+		return false;	
+	end
+
 	-- caixa A é a coisa atual
 	caixaA.x = self.posicaoX
 	caixaA.y = self.posicaoY
