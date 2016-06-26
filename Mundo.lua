@@ -20,9 +20,18 @@ function Mundo:remove(coisa)
 	self.coisas[coisa] = nil
 end
 
+-- se desenha o mundo desenha as coisas nele
 function Mundo:desenha()
 	Coisa.desenha(self)
 	for _,coisa in pairs(self.coisas) do
 		coisa:desenha()
+	end
+end
+
+-- se move o mundo move o que tem nele
+function Mundo:desloca(quantidadeX, quantidadeY)
+	Coisa.desloca(self, quantidadeX, quantidadeY)
+	for _,coisa in pairs(self.coisas) do
+		coisa:desloca(quantidadeX, quantidadeY)
 	end
 end
