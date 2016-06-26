@@ -8,6 +8,7 @@ function Mundo:new(mundo)
 		imagem = mundo.imagem
 	}
 	objeto.coisas = {}
+	objeto.acoesEReacoes = {} -- lista de dinamicas a aplicar
 	self.__index = self
 	return setmetatable(objeto, self)
 end
@@ -57,5 +58,15 @@ function Mundo:detectaColisao(coisa)
 		return nil
 	else
 		return colisoes
+	end
+end
+
+function Mundo:adicionaAcaoEReacao(dinamica)
+	table.insert(self.acoesEReacoes, dinamica)
+end
+
+function Mundo:aplicaAcoesEReacoes(dt)
+	for _,dinamica in ipairs(self.acoesEReacoes) do
+		dinamica:executa(dt)
 	end
 end
