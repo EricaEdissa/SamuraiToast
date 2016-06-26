@@ -12,7 +12,10 @@ function Mundo:new(mundo)
 	return setmetatable(objeto, self)
 end
 
-function Mundo:adiciona(coisa)
+-- adiciona uma coisa no mapa que por padrao se move com ele
+-- se solta for true a coisa nao se desloca junto do mapa
+function Mundo:adiciona(coisa, solta)
+	coisa._solta = solta -- adiciona um campo _solta a coisa passada
 	self.coisas[coisa] = coisa
 end
 
@@ -32,6 +35,8 @@ end
 function Mundo:desloca(quantidadeX, quantidadeY)
 	Coisa.desloca(self, quantidadeX, quantidadeY)
 	for _,coisa in pairs(self.coisas) do
-		coisa:desloca(quantidadeX, quantidadeY)
+		if not coisa._solta then
+			coisa:desloca(quantidadeX, quantidadeY)
+		end
 	end
 end
