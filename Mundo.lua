@@ -41,6 +41,8 @@ function Mundo:desloca(quantidadeX, quantidadeY)
 	end
 end
 
+-- retorna as colisoes ocorridas
+-- retorna nil se nao houve colisao
 function Mundo:detectaColisao(coisa)
 	local colisoes = {}
 	local numeroDeColisoes = 0;
@@ -51,5 +53,9 @@ function Mundo:detectaColisao(coisa)
 		end
 	end
 
-	return colisoes
+	if numeroDeColisoes == 0 then
+		return nil
+	else
+		return colisoes
+	end
 end
