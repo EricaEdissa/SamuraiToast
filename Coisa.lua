@@ -83,29 +83,17 @@ function Coisa:colidiu(outraCoisa)
 		return false;	
 	end
 
-	-- caixa A é a coisa atual
-	caixaA.x = self.posicaoX
-	caixaA.y = self.posicaoY
-	caixaA.altura = self.altura
-	caixaA.largura = self.largura
-
-	-- caixa B é a outra coisa
-	caixaB.x = outraCoisa.posicaoX
-	caixaB.y = outraCoisa.posicaoY
-	caixaB.altura = outraCoisa.altura
-	caixaB.largura = outraCoisa.largura
-
 	-- premissa: se está do lado não colidiu
 	-- de modo analogo, se sobrepõe colidiu
 
 	-- caixa B acima da caixa A
-	if caixaB.y + caixaB.altura > caixaA.y
+	if outraCoisa.posicaoY + outraCoisa.altura < self.posicaoY
 	-- caixa B abaixo da caixa A
-	or caixaB.y < caixaA.y + caixaA.altura 
+	or outraCoisa.posicaoY > self.posicaoY + self.altura 
 	-- caixa B a esquerda da caixa A
-	or caixaB.x + caixaB.largura < caixaA.x 
+	or outraCoisa.posicaoX + outraCoisa.largura < self.posicaoX 
 	-- caixa B a direita da caixa A
-	or caixaB.x > caixaA.x + caixaA.largura then
+	or outraCoisa.posicaoX > self.posicaoX + self.largura then
 		return false
 	end
 
