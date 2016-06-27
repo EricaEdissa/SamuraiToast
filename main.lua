@@ -1,6 +1,7 @@
-require "menu"
-local utf8 = require("utf8")
+local menu = require "menu"
+local utf8 = require "utf8"
 local gamera = require "gamera"
+local scoreslib = require "scoreslib"
 local isDown = love.keyboard.isDown
 local min, max = math.min, math.max
 
@@ -8,14 +9,13 @@ local function updateTarget(dt)
 	enemy.pos_x, enemy.pos_y = cam:toWorld(love.mouse.getPosition())
 end
 
-
 local function updateCameras(dt)
 	cam:setPosition(hero.pos_x, hero.pos_y)
 	local scaleFactor = isDown('home') and -0.8 or (isDown('end') and 0.8 or 0)
 	cam:setScale(cam:getScale() + scaleFactor * dt)
 
 	--[[local angleFactor = isDown("3") and -0.8 or (isDown("4") and 0.8 or 0)
-  cam:setAngle(cam:getAngle() + angleFactor * dt)]]
+	cam:setAngle(cam:getAngle() + angleFactor * dt)]]
 end
 
 function gameReset()
@@ -23,28 +23,33 @@ function gameReset()
 	hero.pos_x = 700
 	hero.pos_y = 700
 	hero.score = 0
+	hero.velocidade = 160
 	table.remove(shots)
 	table.remove(enemy)
 	table.remove(powers)
 end
 
--- acaba aqui
 
 function love.load()
+	pausado = love.graphics.newImage("menu/paused.png")
+	leaderboard = love.graphics.newImage("menu/leaderboard.png")
+	boss1 = love.graphics.newImage("inimigos/boss1.png")
+	boss2 = love.graphics.newImage("inimigos/boss2.png")
 
-	highscores = {}
+	boss = { 
+		life = 100 ,
+		velocidade = 50 ,
+		frame = 1 ,
+		on = false ,  
+		anim_time = 0 ,
+		pos_y = 200,
+		pos_x = 300 ,
+		shoot_time 
+	}
 
-	if not love.filesystem.exists("score.lua")then
-		score = love.filesystem.newFile("score.lua")
-	end
 
-	love.filesystem.write("score.lua","hero.highscore\n=\n" .. hero.highscore)
 
-	for lines in love.filesystem.lines("score.lua") do
-		table.insert(highscores,lines)
-	end
-
-	hero.highscore = highscores[3]
+	scoreslib.loadHighscores("highscores.txt",5)
 
 	mundo = {
 		largura = 1200,
@@ -85,15 +90,11 @@ function love.load()
 		hero.walk[x] = love.graphics.newImage("heroi/hero0" .. x .. ".png")
 	end
 
--- Butoes
+	-- Butoes
 
 	if gamestate == "menu" then
 		button_spawn(390,300,"Start","start")
 		button_spawn(10,550,"Quit","sair")
-	end
-
-	if gamestate == "jogando" then
-		button_spawn(400,22,"Pause","pause")
 	end
 
 	timer= 0 
@@ -105,19 +106,32 @@ function love.load()
 end
 
 function love.mousepressed(x,y)
-	if gamestate == "menu" or gamestate == "gameover"  then
+	if gamestate == "menu" or gamestate == "gameover" or gamestate == "leaderboard" or gamestate == "jogando" or gamestate == "pause" then
 		button_click(x,y)
 	end
 end
 
--------------------------------------------------------------------------
 
 function love.update(dt)
 
-	if hero.score > tonumber (hero.highscore) then
-		hero.highscore = hero.score
+	if gamestate == "pause" then
+		button_clear()
+		button_spawn(50,500,"Resume","resume")
+		button_spawn(350,500,"Menu","menu")
+		button_spawn(650,500,"Quit","sair")
+	end 
+
+
+	if gamestate == "leaderboard" then
+		button_clear()
+		button_spawn(620,530,"Restart","restart")
+		button_spawn(50,530,"Quit","sair")
+		button_draw()
 	end
 
+	if love.keyboard.isDown("p") then
+		gamestate = "pause"
+	end
 
 	if love.keyboard.isDown("backspace") then
 		local byteoffset = utf8.offset(hero.name, -1)
@@ -127,6 +141,7 @@ function love.update(dt)
 	end
 
 	if gamestate == "gameover" then
+		button_clear()
 		gameReset()
 		button_spawn(620,530,"Restart","restart")
 		button_spawn(50,530,"Quit","sair")
@@ -138,22 +153,21 @@ function love.update(dt)
 	updateCameras(dt)
 	updateTarget(dt)
 
-	if hero.life < 1 then
-		love.filesystem.write("score.lua", "hero.highscore\n=\n" .. hero.highscore)
-		gamestate = "gameover"
-	end
 
 	mousex = love.mouse.getX()
 	mousey = love.mouse.getY()
 
-	if gamestate == "menu" or gamestate== "gameover"  then
+	if gamestate == "menu" or gamestate== "gameover" then
+		if love.keyboard.isDown("return") then
+			gamestate = "jogando"
+		end 
 		button_check()
 	end
 
 	if gamestate == "jogando" then
 		button_clear()
 		love.audio.play(gamesong , { channel=0, loops=-1, fadein=5000 } )
-		love.graphics.print("II",300,200)
+		button_spawn(650,100,"PAUSE","pause")
 		momento = os.time() 
 
 		enemyGenerator()  
@@ -264,8 +278,8 @@ function love.update(dt)
 		end 
 
 		for i,v in ipairs(enemy) do -- percorre tabela de inimigos checa cada um com o heroi 
-			if checkCol(hero.pos_x, hero.pos_y, hero.walk[hero.anim_frame]:getWidth()/2,hero.walk[hero.anim_frame]:getHeight()/2,
-				v.pos_x, v.pos_y, v.img[1]:getWidth()/2, v.img[1]:getHeight()/2) then -- checando hero com inimigos  
+			if checkCol(hero.pos_x - hero.walk[hero.anim_frame]:getWidth()/2, hero.pos_y - hero.walk[hero.anim_frame]:getHeight()/2, hero.walk[hero.anim_frame]:getWidth(),hero.walk[hero.anim_frame]:getHeight(),
+				v.pos_x - v.img[1]:getWidth()/2 , v.pos_y - v.img[1]:getHeight()/2 , v.img[1]:getWidth(), v.img[1]:getHeight()) then -- checando hero com inimigos  
 				hero.life = hero.life -  (hero.damage*dt)
 			end
 		end 
@@ -285,18 +299,31 @@ function love.update(dt)
 
 		timer = timer + 1
 		--ALGORITMO DE RANDOM PARA GERAR POWER UPS ***MODIFICAR***
-		if  timer%25 == 0 then 
-			power()
+		if  timer%50 == 0 then 
+			if love.math.random(1,2) == 2 then 
+				power()
+			end 
 		end 
 
+		if hero.name == "mano" or hero.name == "MANO" then
+			hero.life = 9999
+			hero.velocidade = 2000
+			hero.score = 999999
+			hero.cooldown = 0.01
+		end
+
+
+
 		for i,v in ipairs(powers) do -- percorre tabela de powers checa cada um com o heroi 
-			if checkCol(hero.pos_x, hero.pos_y, hero.walk[hero.anim_frame]:getWidth()/2,hero.walk[hero.anim_frame]:           getHeight()/2,v.pos_x, v.pos_y, v.img:getWidth()/2, v.img:getHeight()/2) then -- checando hero com powers  
-				if v.tipo == 1 then -- SE POWER 1 FOI PEGO 
+			if checkCol(hero.pos_x, hero.pos_y, hero.walk[hero.anim_frame]:getWidth()/2,hero.walk[hero.anim_frame]:getHeight()/2,v.pos_x, v.pos_y, v.img:getWidth()/2, v.img:getHeight()/2) then -- checando hero com powers  
+				if v.tipo == 1 then -- SE POWER 1 FOI PEGO (de forca) 
+					force = true 
+					force_timer = timer 
 				elseif v.tipo == 2 then  -- SE POWER 2 FOI PEGO AUMENTA A VIDA 
 					if hero.life < 400 then
 						hero.life = hero.life + 50
 					end 
-				else   -- SE POWER 3 FOI PEGO VARIAVEL VEL EH VERDADEIRA 
+				else   -- SE POWER 3 FOI PEGO(de velocidade) 
 					run = timer
 					vel = true 
 				end 
@@ -304,10 +331,18 @@ function love.update(dt)
 			end
 		end 
 
-		if vel == true then  -- SE O POWER UP 3 FOI PEGO AUMNTA VELOCIDADE DO HEROI E DOS SHOTS 
+		if force == true then -- TEMPO DE DURACAO DO POWER UP 1 (forca) 
+			hero.damage = 10 
+			if (timer - force_timer > 300) then 
+				hero.damage = 40 
+				force = false 
+			end 
+		end 
+
+		if vel == true then  -- TEMPO DE DURACAO DO POWER UP 3 (velocidadee) 
 			hero.velocidade =  300
 			for i,v in ipairs(shots) do  
-				v.vel = 370 
+				v.vel = 390 
 			end 
 			if (timer - run > 300) then 
 				hero.velocidade = 120 
@@ -315,12 +350,78 @@ function love.update(dt)
 					v.vel = 230 
 				end 
 				vel = false 
-			end
+			end 
+		end 
+
+
+		for i,v in ipairs(powers) do -- retira power ups que nao foram pegos da tela 
+			v.time = v.time+ dt*10 
+			if( v.time > 1000) then 
+				table.remove(powers ,i ) 
+			end 
+		end 
+
+
+
+		if hero.score%2==0 and hero.score>0 then 
+			boss.on = true 
+		end 
+	end 
+
+	dist_x= 1 
+	dist_y= 1 
+
+	if boss.on == true then 
+		dist_x= hero.pos_x - boss.pos_x    -- faz inimigo perseguir o heroi checando pos heroi e do inimigo 
+		dist_y= hero.pos_y - boss.pos_y
+		if dist_x <= 0 then
+			boss.pos_x = boss.pos_x - (boss.velocidade *dt) 
+		end 
+		if dist_y  <= 0  then 
+			boss.pos_y = boss.pos_y - (boss.velocidade *dt) 
+		end 
+		if dist_x >= 0  then     
+			boss.pos_x = boss.pos_x + (boss.velocidade *dt) 
+		end
+		if dist_y >= 0  then     
+			boss.pos_y = boss.pos_y + (boss.velocidade *dt) 
+		end 
+
+
+
+	end 
+
+	for i,v in ipairs(powers) do -- percorre tabela de powers checa cada um com o heroi 
+		if checkCol(hero.pos_x, hero.pos_y, hero.walk[hero.anim_frame]:getWidth()/2,hero.walk[hero.anim_frame]:           getHeight()/2,v.pos_x, v.pos_y, v.img:getWidth()/2, v.img:getHeight()/2) then -- checando hero com powers  
+			if v.tipo == 1 then -- SE POWER 1 FOI PEGO 
+				force = true 
+			elseif v.tipo == 2 then  -- SE POWER 2 FOI PEGO AUMENTA A VIDA 
+				if hero.life < 380 then
+					hero.life = hero.life + 20
+				end 
+			else   -- SE POWER 3 FOI PEGO VARIAVEL VEL EH VERDADEIRA 
+				run = timer
+				vel = true 
+			end 
+			table.remove(powers, i ) 
+		end
+	end 
+
+	if vel == true then  -- SE O POWER UP 3 FOI PEGO AUMNTA VELOCIDADE DO HEROI E DOS SHOTS 
+		hero.velocidade =  300
+		for i,v in ipairs(shots) do  
+			v.vel = 370 
+		end 
+		if (timer - run > 300) then 
+			hero.velocidade = 120 
+			for i,v in ipairs(shots) do  
+				v.vel = 230 
+			end 
+			vel = false 
 		end
 	else 
 		love.audio.pause(gamesong)
-	end 
-
+	end
 
 	for i,v in ipairs(powers) do 
 		v.time = v.time+ dt*10 
@@ -328,9 +429,13 @@ function love.update(dt)
 			table.remove(powers ,i ) 
 		end 
 	end 
+
+	if hero.life < 1 then
+		scoreslib.addHighscore(hero.name,hero.score)
+		scoreslib.saveHighscores("highscores.txt")
+		gamestate = "gameover"
+	end
 end 
-
-
 
 powers={} 
 
@@ -344,7 +449,7 @@ function power()
 	else 
 		img = love.graphics.newImage("heroi/chicken.png") -- aumenta velocidade 
 	end 
-	table.insert(powers , {img = img , tipo = tipo , pos_x = love.math.random(0,1000) , pos_y= love.math.random(0,1000), time=0} )
+	table.insert(powers , {img = img , tipo = tipo , pos_x = love.math.random(0,mundo.altura) , pos_y= love.math.random(0,mundo.largura), time=0} )
 end 
 
 love.keyboard.keysPressed = { }
@@ -394,15 +499,14 @@ hero= {
 	walk = {} ,
 	pos_x = 700  , 
 	pos_y= 700  , 
-	velocidade = 120  ,
+	velocidade = 160  ,
 	anim_time=0, 
-	cooldown = 0.2,
+	cooldown = 0.4,
 	shot = 0,
 	life = 250, 
 	name = "",
 	nameinput = "on",
 	score = 0,
-	highscore = 0,
 	damage = 40 
 }
 
@@ -477,6 +581,7 @@ function enemy.spawn() --insert elements on enemy table
 		if v.tipo == 1 then         -- DETERMINAR INIMIGO TIPO 1 
 			v.img[1] = love.graphics.newImage("inimigos/onion1.png") 
 			v.img[2] = love.graphics.newImage("inimigos/onion2.png")
+
 		elseif v.tipo == 2  then  
 			v.img[1] = love.graphics.newImage("inimigos/kopa1.png") 
 			v.img[2] = love.graphics.newImage("inimigos/kopa2.png")
@@ -505,7 +610,7 @@ shots = {}  -- table with all shurikens
 
 function shoot(x, y , dirx, diry) -- makes shuriken appear on the screen from pont where hero faces
 	table.insert ( shots, {img = love.graphics.newImage("heroi/shot.png"), pos_x = x, pos_y = y , 
-			dir_x = dirx,   dir_y=diry,collision = false, vel = 230}) 
+	dir_x = dirx,   dir_y=diry,collision = false, vel = 230}) 
 	love.audio.play(shuriken[love.math.random(1,2)])
 end 
 
@@ -517,72 +622,75 @@ end
 
 function love.draw()
 
+	if boss.on == true then 
+		love.graphics.draw(--[[boss.walk[boss.frame]]boss1,boss.pos_y, boss.pos_x, 0, 1, 1 ,--[[boss.walk[boss.frame]]boss1:getWidth()/2, --[[boss.walk[boss.frame]]boss1:getHeight()/2)
+	end 
+
 	cam:draw(function(l,t,w,h)
 
-			if gamestate == "jogando" then
-				for i=1, 75 , 1 do --Percorre a matriz e desenha quadrados imagens
-					for j=1, 88, 1 do
-						if (mapa[i][j] == "G") then 
-							love.graphics.draw(tilesetImage, tileQuads[60], (j * tileSize) - tileSize, (i * tileSize) - tileSize)
-						elseif (mapa[i][j] == "D") then
-							love.graphics.draw(love.graphics.newImage("heroi/tree.png"),(j * tileSize) - tileSize, (i * tileSize) - tileSize)
-						elseif (mapa[i][j] == "C") then
-							love.graphics.draw(tilesetImage, tileQuads[7], (j * tileSize) - tileSize, (i * tileSize) - tileSize)
-						elseif (mapa[i][j] == "P") then
-							love.graphics.draw(tilesetImage, tileQuads[8],(j * tileSize) - tileSize, (i * tileSize) - tileSize)
-						elseif (mapa[i][j] == "B") then
-							love.graphics.draw(tilesetImage, tileQuads[6],(j * tileSize) - tileSize, (i * tileSize) - tileSize)
-						end
+		if gamestate == "jogando" then
+			for i=1, 75 , 1 do --Percorre a matriz e desenha quadrados imagens
+				for j=1, 88, 1 do
+					if (mapa[i][j] == "G") then 
+						love.graphics.draw(tilesetImage, tileQuads[60], (j * tileSize) - tileSize, (i * tileSize) - tileSize)
+					elseif (mapa[i][j] == "D") then
+						love.graphics.draw(love.graphics.newImage("heroi/tree.png"),(j * tileSize) - tileSize, (i * tileSize) - tileSize)
+					elseif (mapa[i][j] == "C") then
+						love.graphics.draw(tilesetImage, tileQuads[7], (j * tileSize) - tileSize, (i * tileSize) - tileSize)
+					elseif (mapa[i][j] == "P") then
+						love.graphics.draw(tilesetImage, tileQuads[8],(j * tileSize) - tileSize, (i * tileSize) - tileSize)
+					elseif (mapa[i][j] == "B") then
+						love.graphics.draw(tilesetImage, tileQuads[6],(j * tileSize) - tileSize, (i * tileSize) - tileSize)
 					end
 				end
+			end
 
-				love.graphics.setColor(255, 255, 255) 
-				love.graphics.draw(hero.walk[hero.anim_frame], hero.pos_x ,  -- desenha heroi
-					hero.pos_y, 0, 0.85,0.85, hero.walk[hero.anim_frame]:getWidth()/2, hero.walk[hero.anim_frame]:getHeight()/2 )
+			love.graphics.setColor(255, 255, 255) 
+			love.graphics.draw(hero.walk[hero.anim_frame], hero.pos_x ,  -- desenha heroi
+			hero.pos_y, 0,1,1, hero.walk[hero.anim_frame]:getWidth()/2, hero.walk[hero.anim_frame]:getHeight()/2 )
+			love.graphics.rectangle("line", hero.pos_x - hero.walk[hero.anim_frame]:getWidth()/2, hero.pos_y - hero.walk[hero.anim_frame]:getHeight()/2, hero.walk[hero.anim_frame]:getWidth(), hero.walk[hero.anim_frame]:getHeight())
 
-				for i,v in ipairs(enemy) do
-					love.graphics.draw( v.img[v.frame] , v.pos_x, v.pos_y)   -- draws inimigos onscreen 
-				end
+			for i,v in ipairs(enemy) do
+				love.graphics.draw( v.img[v.frame] , v.pos_x, v.pos_y)   -- draws enemies onscreen 
+			end
 
-				local dir_y= 0  -- control shuriken aiming through hero frame
-				local dir_x= 1 
-
-				while (love.keyboard.isDown("space") or love.keyboard.isDown(" "))
-					and hero.shot <=0 do
-
-					if hero.anim_frame>=9 and hero.anim_frame <= 12 then -- Up 
-						dir_y = -1 
-						dir_x = 0 
-					end 
-					if hero.anim_frame>=13 and hero.anim_frame <= 16  then -- Down
-						dir_y = 1 
-						dir_x= 0 
-					end 
-					if hero.anim_frame <= 4   then -- Left 
-						dir_x= 1 
-						dir_y= 0 
-					end
-					if hero.anim_frame>=5 and hero.anim_frame <= 8   then -- Righ 
-						dir_x= -1 
-					end
-					shoot(hero.pos_x, hero.pos_y, dir_x , dir_y ) 
-					hero.shot = hero.cooldown
+			local dir_y= 0  -- control shuriken aiming through hero frame
+			local dir_x= 1 
+			while (love.keyboard.isDown("space") or love.keyboard.isDown(" ")) and hero.shot <=0 do
+				if hero.anim_frame>=9 and hero.anim_frame <= 12 then -- Up 
+					dir_y = -1 
+					dir_x = 0 
 				end 
-
-				for i, v in pairs(shots) do 
-					love.graphics.draw( v.img, v.pos_x, v.pos_y, (v.pos_x + v.pos_y)*1/2 , 1.3 ,1.3 , v.img:getWidth()/2, v.img:getHeight()/2 )  -- desenha shots    
-					love.keyboard.updateKeys()
+				if hero.anim_frame>=13 and hero.anim_frame <= 16  then -- Down
+					dir_y = 1 
+					dir_x= 0 
 				end 
-
-				for i, v in pairs(powers) do  -- desenha power ups  
-					love.graphics.draw( v.img, v.pos_x, v.pos_y, 0 , 1 ,1, v.img:getWidth()/2, v.img:getHeight()/2 )   
+				if hero.anim_frame <= 4   then -- Left 
+					dir_x= 1 
+					dir_y= 0 
 				end 
-				love.graphics.setColor(255,255,255)
-				love.graphics.setFont(fonte,50)
+				if hero.anim_frame>=5 and hero.anim_frame <= 8   then -- Righ 
+					dir_x= -1   
+				end     
+				shoot(hero.pos_x, hero.pos_y, dir_x , dir_y ) 
+				hero.shot = hero.cooldown
 			end 
-		end)
+
+			for i, v in pairs(shots) do 
+				love.graphics.draw( v.img, v.pos_x, v.pos_y, (v.pos_x + v.pos_y)*1/2 , 1.3 ,1.3 , v.img:getWidth()/2, v.img:getHeight()/2 )  -- desenha shots    
+				love.keyboard.updateKeys()
+			end 
+
+			for i, v in pairs(powers) do  -- desenha power ups  
+				love.graphics.draw( v.img, v.pos_x, v.pos_y, 0 , 1 ,1, v.img:getWidth()/2, v.img:getHeight()/2 )   
+			end 
+			love.graphics.setColor(255,255,255)
+			love.graphics.setFont(fonte,50)
+		end 
+	end)
 
 	if gamestate == "jogando" then
+		button_draw()
 		love.graphics.print(hero.name, 350,20)
 		if vel == true then 
 			love.graphics.setColor(0,100,0)
@@ -594,12 +702,21 @@ function love.draw()
 		love.graphics.print(hero.score, 700, 10 ) 
 	end
 
+	if force == true then 
+		love.graphics.setColor(0,0,255)
+		love.graphics.rectangle("fill", 10, 85, 300+(force_timer-timer) ,15)
+	end 
+	love.graphics.setColor(255, 255, 255) 
+	if vel == true then 
+		love.graphics.setColor(255,255,0)
+		love.graphics.rectangle("fill", 10, 65, 300+(run-timer) ,15)
+	end 
 	love.graphics.setColor(255, 255, 255) 
 
 	if gamestate == "gameover" then
 		love.graphics.setNewFont("fontes/fonteninja.ttf",90)
 		love.graphics.draw(telagameover,0,0)
-		love.graphics.print(gameover,150,20) 
+		love.graphics.print(gameover,150,20)
 		button_draw()
 
 	end
@@ -614,6 +731,18 @@ function love.draw()
 		if love.keyboard.isDown('n') and hero.nameinput == "off" then
 			hero.nameinput = "on"
 		end
+	end
+
+	if gamestate == "pause" then
+		love.graphics.draw(pausado,250,100)
+		button_draw()
+	end 
+
+	if gamestate == "leaderboard" then
+		love.graphics.draw(leaderboard,0,0)
+		love.graphics.newFont("fontes/fonteninja.ttf",40)
+		scoreslib.draw()
+		button_draw()
 	end
 
 	if gamestate == "menu" then
